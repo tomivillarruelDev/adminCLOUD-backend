@@ -77,8 +77,26 @@ A continuación se describe el paso a paso para crear una base sólida de backen
      ```bash
      npm i @nestjs/jwt passport-jwt @nestjs/passport passport bcrypt
      ```  
-   - Crear módulo de autenticación con estrategias JWT.
-   - Proteger rutas con guardas (`@UseGuards(AuthGuard('jwt'))`).
+   - Crear módulo de autenticación con estrategias JWT:
+     - **AuthModule**: Configurado con `JwtModule` y `PassportModule`
+     - **JwtStrategy**: Implementa `PassportStrategy` para validar tokens JWT
+     - **UserSchema**: Modelo Mongoose con middleware para hash de contraseñas
+   
+   - Decoradores personalizados:
+     - **@Auth()**: Combina `UseGuards` con roles en un solo decorador
+     - **@GetUser()**: Extrae el usuario autenticado o sus propiedades
+     - **@RoleProtected()**: Protege rutas según roles de usuario
+   
+   - Guards y protección de rutas:
+     - **UserRoleGuard**: Verifica si el usuario tiene los roles requeridos
+     - Proteger rutas completas: `@Auth(ValidRoles.admin)`
+     - Proteger controladores: `@UseGuards(AuthGuard())`
+
+   - Endpoints típicos:
+     - `/auth/register`: Registrar nuevos usuarios
+     - `/auth/login`: Autenticar usuarios y generar tokens
+     - `/auth/refresh`: Renovar tokens
+     - `/auth/logout`: Cerrar sesión (cliente)
 
 11. **Documentar la API con Swagger**  
    - Instalar Swagger:

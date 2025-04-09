@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
   Injectable,
@@ -10,11 +13,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
-
-interface JwtPayload {
-  id: string;
-  email: string;
-}
+import { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +34,6 @@ export class AuthService {
       });
 
       // Eliminar la contraseña del objeto de respuesta
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = user.toJSON();
 
       return {
@@ -50,25 +48,57 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.userModel.findOne({ email: email.toLowerCase() });
+    // Usamos .findOne().exec() para asegurar que obtenemos un documento completo de Mongoose
+    const user = await this.userModel
+      .findOne({ email: email.toLowerCase() })
+      .exec();
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales no válidas');
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verificamos que el método existe antes de llamarlo
+    if (!user.comparePassword) {
+      throw new InternalServerErrorException('Error in credentials validation');
     }
 
     if (!(await user.comparePassword(password))) {
-      throw new UnauthorizedException('Credenciales no válidas');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user.toJSON();
 
     return {
       ...userWithoutPassword,
       token: this.getJwtToken({ id: user.id, email: user.email }),
     };
-  } 
+  }
 
+  async refreshToken(userId: string) {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const { password: _, ...userWithoutPassword } = user.toJSON();
+
+    return {
+      ...userWithoutPassword,
+      token: this.getJwtToken({ id: user.id, email: user.email }),
+    };
+  }
+
+  logout(userId: string) {
+    // En un sistema JWT puro, el logout se maneja del lado del cliente
+    // eliminando el token almacenado
+
+    return {
+      success: true,
+      message: 'Session successfully closed',
+    };
+  }
+  
   private getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
   }
@@ -76,12 +106,12 @@ export class AuthService {
   private handleDBErrors(error: any): never {
     if (error.code === 11000) {
       throw new BadRequestException(
-        `Usuario ya existe: ${JSON.stringify(error.keyValue)}`,
+        `User already exists: ${JSON.stringify(error.keyValue)}`,
       );
     }
     console.error(error);
     throw new InternalServerErrorException(
-      'Error al crear usuario - Revisar logs del servidor',
+      'Error creating user - Check server logs',
     );
   }
 }

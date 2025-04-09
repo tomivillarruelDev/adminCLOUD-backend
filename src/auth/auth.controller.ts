@@ -1,6 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
+import { Auth, GetUser } from './decorators';
+import { User } from './schemas/user.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -14,5 +16,30 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Auth()
+  @Get('refresh')
+  async refreshToken(@GetUser('id') userId: string) {
+    return await this.authService.refreshToken(userId);
+  }
+
+  @Auth()
+  @Post('logout')
+  logout(@GetUser('id') userId: string) {
+    return this.authService.logout(userId);
+  }
+
+  @Get('private')
+  @Auth()
+  testingPrivateRoute(
+    @GetUser()
+    user: User,
+  ) {
+    return {
+      ok: true,
+      message: 'Hello world from private route',
+      user,
+    };
   }
 }

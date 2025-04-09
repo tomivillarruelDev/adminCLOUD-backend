@@ -56,3 +56,11 @@ UserSchema.pre('save', async function (next) {
 
   next();
 });
+
+// Añadir el método comparePassword al esquema
+UserSchema.methods.comparePassword = async function (
+  this: UserDocument,
+  password: string,
+): Promise<boolean> {
+  return bcrypt.compare(password, this.password);
+};
