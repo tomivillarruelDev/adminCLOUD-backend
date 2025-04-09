@@ -7,6 +7,7 @@ import { EnvConfiguration, JoiValidation } from './common/config/';
 import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MongooseModule } from '@nestjs/mongoose';
           'mongodb://root:root@localhost:27017/admin',
       }),
     }),
+    CacheModule.register(),
     CommonModule,
     FilesModule,
     AuthModule,
