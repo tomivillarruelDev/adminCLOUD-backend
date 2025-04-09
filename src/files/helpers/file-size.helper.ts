@@ -1,32 +1,35 @@
-export const FILE_SIZE = {
+export const FILE_SIZE = Object.freeze({
   KB: 1024,
   MB: 1024 * 1024,
   GB: 1024 * 1024 * 1024,
-  // Límites comúnmente usados
   MAX_IMAGE_SIZE: 5 * 1024 * 1024, // 5MB
   MAX_PDF_SIZE: 10 * 1024 * 1024, // 10MB
   MAX_DOCUMENT_SIZE: 20 * 1024 * 1024, // 20MB
-};
+});
+
+export const FILE_EXTENSIONS = Object.freeze({
+  IMAGE: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'],
+  DOCUMENT: ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+  PDF: ['pdf'],
+});
 
 export const isValidFileSize = (fileSize: number, maxSize: number): boolean =>
   fileSize <= maxSize;
 
 export const getMaxSizeByExtension = (fileExtension: string): number => {
-  const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
-  const documentExtensions = [
-    'pdf',
-    'doc',
-    'docx',
-    'xls',
-    'xlsx',
-    'ppt',
-    'pptx',
-  ];
+  const extension = fileExtension.toLowerCase();
 
-  if (imageExtensions.includes(fileExtension)) return FILE_SIZE.MAX_IMAGE_SIZE;
-  if (fileExtension === 'pdf') return FILE_SIZE.MAX_PDF_SIZE;
-  if (documentExtensions.includes(fileExtension))
+  if (FILE_EXTENSIONS.IMAGE.includes(extension)) {
+    return FILE_SIZE.MAX_IMAGE_SIZE;
+  }
+
+  if (FILE_EXTENSIONS.PDF.includes(extension)) {
+    return FILE_SIZE.MAX_PDF_SIZE;
+  }
+
+  if (FILE_EXTENSIONS.DOCUMENT.includes(extension)) {
     return FILE_SIZE.MAX_DOCUMENT_SIZE;
+  }
 
   return FILE_SIZE.MAX_DOCUMENT_SIZE;
 };

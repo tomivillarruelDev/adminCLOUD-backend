@@ -16,7 +16,7 @@ export const generateUniqueFileName = (
     const fileExtension = sanitizeFileExtension(extractFileExtension(file));
     const newFileName =
       useOriginalName && file.originalname
-        ? `${file.originalname.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_')}-${uuid().substring(0, 8)}.${fileExtension}`
+        ? `${sanitizeOriginalName(file.originalname)}-${uuid().substring(0, 8)}.${fileExtension}`
         : `${uuid()}.${fileExtension}`;
 
     callback(null, newFileName);
@@ -42,4 +42,8 @@ export const generateStructuredFileName = (
   } catch (error) {
     callback(error as Error, false);
   }
+};
+
+const sanitizeOriginalName = (originalName: string): string => {
+  return originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');
 };

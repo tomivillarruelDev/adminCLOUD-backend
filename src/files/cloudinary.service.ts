@@ -18,24 +18,23 @@ export class CloudinaryService {
 
   async uploadImage(file: Express.Multer.File): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          (
-            error: UploadApiErrorResponse | null,
-            result: UploadApiResponse | undefined,
-          ) => {
-            if (error) {
-              reject(new Error(`Cloudinary upload failed: ${error.message}`));
-            } else if (result) {
-              resolve(result);
-            } else {
-              reject(
-                new Error('Unknown error occurred during Cloudinary upload'),
-              );
-            }
-          },
-        )
-        .end(file.buffer);
+      const uploadStream = cloudinary.uploader.upload_stream(
+        (error: UploadApiErrorResponse | null, result?: UploadApiResponse) => {
+          if (error) {
+            reject(new Error(`Cloudinary upload failed: ${error.message}`));
+            return;
+          }
+
+          if (!result) {
+            reject(new Error('No result from Cloudinary upload'));
+            return;
+          }
+
+          resolve(result);
+        },
+      );
+
+      uploadStream.end(file.buffer);
     });
   }
 
